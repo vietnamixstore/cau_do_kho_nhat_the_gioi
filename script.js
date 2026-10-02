@@ -315,7 +315,7 @@ function checkAnswer() {
 
         // ĐÚNG
         messageElement.textContent =
-            "✅ CHÍNH XÁC!";
+            "✅ CHÍNH XÁC";
 
         messageElement.style.color =
             "#00ff55";
