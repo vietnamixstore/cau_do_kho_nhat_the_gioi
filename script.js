@@ -1,223 +1,145 @@
-```javascript
-// ==========================================
-// CẤU HÌNH
-// ==========================================
-
-// Số lượng dấu phép tính
 const NUMBER_OF_OPERATORS = 10;
-
-// Kết quả tối thiểu
 const MIN_RESULT = 100000;
-
-
-// ==========================================
-// BIẾN
-// ==========================================
 
 let correctAnswer = 0;
 let attempts = 0;
 
-const startScreen = document.getElementById("startScreen");
-const gameScreen = document.getElementById("gameScreen");
-const successScreen = document.getElementById("successScreen");
+const problemElement =
+    document.getElementById("problem");
 
-const startBtn = document.getElementById("startBtn");
-const submitBtn = document.getElementById("submitBtn");
-const exitBtn = document.getElementById("exitBtn");
+const answerInput =
+    document.getElementById("answer");
 
-const answerInput = document.getElementById("answer");
-const problemElement = document.getElementById("problem");
-const messageElement = document.getElementById("message");
-const attemptElement = document.getElementById("attemptCount");
+const submitBtn =
+    document.getElementById("submitBtn");
 
-const music = document.getElementById("music");
+const messageElement =
+    document.getElementById("message");
 
+const attemptElement =
+    document.getElementById("attemptCount");
 
-// ==========================================
-// FULLSCREEN
-// ==========================================
+const music =
+    document.getElementById("music");
 
-async function enterFullscreen() {
+const gameScreen =
+    document.getElementById("gameScreen");
 
-    try {
+const successScreen =
+    document.getElementById("successScreen");
 
-        if (!document.fullscreenElement) {
-            await document.documentElement.requestFullscreen();
-        }
-
-    } catch (error) {
-
-        console.log("Fullscreen không được phép:", error);
-
-    }
-
-}
+const exitBtn =
+    document.getElementById("exitBtn");
 
 
-// ==========================================
-// TẠO SỐ NGẪU NHIÊN
-// ==========================================
-
-function randomNumber(min, max) {
-
-    return Math.floor(
-        Math.random() * (max - min + 1)
-    ) + min;
-
-}
-
-
-// ==========================================
+// ======================================
 // TẠO BÀI TOÁN
-// ==========================================
+// ======================================
 
 function generateProblem() {
 
-    let expression = "";
-    let numbers = [];
-    let operators = [];
-
-    const operatorList = [
+    const operatorsList = [
         "+",
         "-",
         "×",
         "÷"
     ];
 
+    let expression = "";
+    let answer = 0;
 
-    // Tạo 10 dấu
-    for (let i = 0; i < NUMBER_OF_OPERATORS; i++) {
+    let valid = false;
 
-        operators.push(
-            operatorList[
-                randomNumber(0, operatorList.length - 1)
-            ]
-        );
+    while (!valid) {
+
+        let numbers = [];
+        let operators = [];
+
+        // 11 số
+        for (let i = 0; i <= NUMBER_OF_OPERATORS; i++) {
+
+            numbers.push(
+                Math.floor(
+                    Math.random() * 50000
+                ) + 1
+            );
+
+        }
+
+        // 10 dấu
+        for (
+            let i = 0;
+            i < NUMBER_OF_OPERATORS;
+            i++
+        ) {
+
+            operators.push(
+                operatorsList[
+                    Math.floor(
+                        Math.random() *
+                        operatorsList.length
+                    )
+                ]
+            );
+
+        }
+
+        expression =
+            String(numbers[0]);
+
+        for (
+            let i = 0;
+            i < NUMBER_OF_OPERATORS;
+            i++
+        ) {
+
+            expression +=
+                " " +
+                operators[i] +
+                " " +
+                numbers[i + 1];
+
+        }
+
+
+        // Thử tính bài toán
+        try {
+
+            const convertedExpression =
+                expression
+                    .replaceAll("×", "*")
+                    .replaceAll("÷", "/");
+
+            answer =
+                Function(
+                    '"use strict"; return (' +
+                    convertedExpression +
+                    ')'
+                )();
+
+        } catch (error) {
+
+            continue;
+
+        }
+
+
+        // Chỉ nhận kết quả nguyên > 100000
+        if (
+            Number.isFinite(answer) &&
+            Number.isInteger(answer) &&
+            answer > MIN_RESULT &&
+            answer < Number.MAX_SAFE_INTEGER
+        ) {
+
+            valid = true;
+
+        }
 
     }
 
 
-    /*
-        Để tránh chia ra số thập phân,
-        ta tạo bài toán tuần tự sao cho
-        phép chia luôn chia hết.
-    */
-
-    let result = randomNumber(20, 100);
-
-
-    numbers.push(result);
-
-
-    for (let i = 0; i < NUMBER_OF_OPERATORS; i++) {
-
-        const operator = operators[i];
-
-        let number;
-
-
-        if (operator === "+") {
-
-            number = randomNumber(1000, 50000);
-
-            result = result + number;
-
-        }
-
-        else if (operator === "-") {
-
-            number = randomNumber(1, Math.max(1, Math.floor(result / 2)));
-
-            result = result - number;
-
-        }
-
-        else if (operator === "×") {
-
-            number = randomNumber(2, 10);
-
-            result = result * number;
-
-        }
-
-        else if (operator === "÷") {
-
-            /*
-                Chọn ước để kết quả luôn là số nguyên.
-            */
-
-            const divisors = [];
-
-            for (let d = 2; d <= 20; d++) {
-
-                if (result % d === 0) {
-                    divisors.push(d);
-                }
-
-            }
-
-            if (divisors.length > 0) {
-
-                number =
-                    divisors[
-                        randomNumber(
-                            0,
-                            divisors.length - 1
-                        )
-                    ];
-
-                result = result / number;
-
-            } else {
-
-                // Nếu không chia được thì đổi thành cộng
-                operators[i] = "+";
-
-                number = randomNumber(1000, 50000);
-
-                result = result + number;
-
-            }
-
-        }
-
-        numbers.push(number);
-
-    }
-
-
-    /*
-        Nếu kết quả chưa đủ 100000,
-        tăng số đầu tiên cho đến khi đủ.
-    */
-
-    while (result <= MIN_RESULT) {
-
-        const extra = randomNumber(10000, 50000);
-
-        numbers[0] += extra;
-
-        result += extra;
-
-    }
-
-
-    // Tạo chuỗi bài toán
-    expression = numbers[0];
-
-    for (let i = 0; i < NUMBER_OF_OPERATORS; i++) {
-
-        expression +=
-            " " +
-            operators[i] +
-            " " +
-            numbers[i + 1];
-
-    }
-
-
-    correctAnswer = result;
-
+    correctAnswer = answer;
 
     problemElement.textContent =
         expression + " = ?";
@@ -231,71 +153,89 @@ function generateProblem() {
 }
 
 
-// ==========================================
-// BẮT ĐẦU
-// ==========================================
+// ======================================
+// NHẠC
+// ======================================
 
-startBtn.addEventListener("click", async () => {
+function startMusic() {
 
-    // Phát nhạc ngay sau click
-    try {
+    music.volume = 1.0;
 
-        music.volume = 1.0;
+    const promise =
+        music.play();
 
-        await music.play();
+    if (promise !== undefined) {
 
-    } catch (error) {
+        promise
+            .then(() => {
 
-        console.log(
-            "Trình duyệt không cho phát nhạc:",
-            error
-        );
+                console.log(
+                    "Nhạc đang phát."
+                );
+
+            })
+            .catch(() => {
+
+                console.log(
+                    "Chrome đã chặn autoplay."
+                );
+
+            });
 
     }
 
-
-    // Fullscreen
-    await enterFullscreen();
+}
 
 
-    // Chuyển màn hình
-    startScreen.classList.add("hidden");
+// ======================================
+// VÀO TRANG
+// ======================================
 
-    gameScreen.classList.remove("hidden");
+generateProblem();
 
-
-    // Tạo bài toán
-    generateProblem();
-
-
-    // Focus ô nhập
-    setTimeout(() => {
-
-        answerInput.focus();
-
-    }, 300);
-
-});
+startMusic();
 
 
-// ==========================================
-// KIỂM TRA ĐÁP ÁN
-// ==========================================
+// Thử phát lại khi trang được hiển thị
+document.addEventListener(
+    "visibilitychange",
+    () => {
+
+        if (
+            document.visibilityState === "visible" &&
+            !successScreen.classList.contains("hidden")
+        ) {
+
+            return;
+
+        }
+
+        if (
+            document.visibilityState === "visible"
+        ) {
+
+            startMusic();
+
+        }
+
+    }
+);
+
+
+// ======================================
+// KIỂM TRA
+// ======================================
 
 function checkAnswer() {
 
-    const userAnswer =
-        Number(
-            answerInput.value.trim()
-        );
+    const value =
+        answerInput.value.trim();
 
 
-    if (
-        answerInput.value.trim() === ""
-    ) {
+    if (value === "") {
 
         messageElement.textContent =
-            "⚠️ Hãy nhập đáp án!";
+            "⚠️ NHẬP ĐÁP ÁN ĐI!";
 
         messageElement.style.color =
             "orange";
@@ -305,45 +245,55 @@ function checkAnswer() {
     }
 
 
+    const userAnswer =
+        Number(value);
+
+
     attempts++;
 
     attemptElement.textContent =
         attempts;
 
 
-    if (userAnswer === correctAnswer) {
+    if (
+        userAnswer === correctAnswer
+    ) {
 
-        // ĐÚNG
         messageElement.textContent =
-            "✅ CHÍNH XÁC";
+            "✅ CHÍNH XÁC!";
 
         messageElement.style.color =
             "#00ff55";
 
 
+        music.pause();
+
+
         setTimeout(() => {
 
-            gameScreen.classList.add("hidden");
+            gameScreen.classList.add(
+                "hidden"
+            );
 
-            successScreen.classList.remove("hidden");
+            successScreen.classList.remove(
+                "hidden"
+            );
 
-            music.pause();
-
-        }, 700);
+        }, 500);
 
 
     } else {
 
-        // SAI
         messageElement.textContent =
-            "❌ SAI! TIẾP TỤC ĐI 😂";
+            "❌ SAI! GIẢI LẠI ĐI 😂";
 
         messageElement.style.color =
             "red";
 
 
-        // Xóa ô nhập
         answerInput.value = "";
+
+        answerInput.focus();
 
 
         // Rung màn hình
@@ -352,39 +302,35 @@ function checkAnswer() {
                 {
                     transform: "translateX(0)"
                 },
-
                 {
-                    transform: "translateX(-10px)"
+                    transform: "translateX(-12px)"
                 },
-
                 {
-                    transform: "translateX(10px)"
+                    transform: "translateX(12px)"
                 },
-
                 {
-                    transform: "translateX(-10px)"
+                    transform: "translateX(-8px)"
                 },
-
+                {
+                    transform: "translateX(8px)"
+                },
                 {
                     transform: "translateX(0)"
                 }
             ],
             {
-                duration: 300
+                duration: 350
             }
         );
-
-
-        answerInput.focus();
 
     }
 
 }
 
 
-// ==========================================
-// CLICK XÁC NHẬN
-// ==========================================
+// ======================================
+// NÚT XÁC NHẬN
+// ======================================
 
 submitBtn.addEventListener(
     "click",
@@ -392,9 +338,9 @@ submitBtn.addEventListener(
 );
 
 
-// ==========================================
-// NHẤN ENTER
-// ==========================================
+// ======================================
+// ENTER
+// ======================================
 
 answerInput.addEventListener(
     "keydown",
@@ -410,17 +356,19 @@ answerInput.addEventListener(
 );
 
 
-// ==========================================
-// NÚT THOÁT
-// ==========================================
+// ======================================
+// THOÁT
+// ======================================
 
 exitBtn.addEventListener(
     "click",
-    async () => {
+    async function () {
 
         try {
 
-            if (document.fullscreenElement) {
+            if (
+                document.fullscreenElement
+            ) {
 
                 await document.exitFullscreen();
 
@@ -439,46 +387,15 @@ exitBtn.addEventListener(
 );
 
 
-// ==========================================
-// CỐ GẮNG GIỮ NHẠC
-// ==========================================
-
-document.addEventListener(
-    "visibilitychange",
-    () => {
-
-        if (
-            document.visibilityState === "visible" &&
-            !successScreen.classList.contains("hidden")
-        ) {
-
-            return;
-
-        }
-
-        if (
-            document.visibilityState === "visible" &&
-            gameScreen.classList.contains("hidden") === false
-        ) {
-
-            music.play().catch(() => {});
-
-        }
-
-    }
-);
-
-
-// ==========================================
-// CHỐNG CHUỘT PHẢI
-// ==========================================
+// ======================================
+// CHUỘT PHẢI
+// ======================================
 
 document.addEventListener(
     "contextmenu",
-    event => {
+    function (event) {
 
         event.preventDefault();
 
     }
 );
-```
