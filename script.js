@@ -1,81 +1,277 @@
-<!DOCTYPE html>
-<html lang="vi">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <title>SYSTEM LOCKED</title>
-    <link rel="stylesheet" href="style.css">
-</head>
+// ======================================
+// CẤU HÌNH
+// ======================================
+const NUMBER_OF_TERMS = 4;      // số "cụm" trong bài toán (tăng lên = khó hơn)
+const MAX_NUMBER = 30;          // số lớn nhất trong mỗi phép tính
 
-<body>
+let correctAnswer = 0;
+let attempts = 0;
+let locked = false;             // true khi đang khóa
+let solved = false;
 
-    <!-- Màn hình bấm để bắt đầu (cần để trình duyệt cho phát nhạc + fullscreen) -->
-    <div id="startScreen">
-        <div class="start-box">
-            <div class="lock-icon">⚠️</div>
-            <h1>CẢNH BÁO</h1>
-            <p class="subtitle">PHÁT HIỆN LỖI HỆ THỐNG</p>
-            <button id="startBtn">BẤM ĐỂ TIẾP TỤC</button>
-        </div>
-    </div>
+const $ = (id) => document.getElementById(id);
 
-    <div id="gameScreen" class="hidden">
+const startScreen   = $("startScreen");
+const startBtn      = $("startBtn");
+const gameScreen    = $("gameScreen");
+const successScreen = $("successScreen");
+const problemEl     = $("problem");
+const answerInput   = $("answer");
+const submitBtn     = $("submitBtn");
+const messageEl     = $("message");
+const attemptEl     = $("attemptCount");
+const music         = $("music");
+const exitBtn       = $("exitBtn");
 
-        <div class="top-warning">⚠ SYSTEM LOCKED ⚠</div>
 
-        <div class="container">
+// ======================================
+// TẠO BÀI TOÁN (luôn ra số nguyên, không dùng vòng lặp thử sai)
+// ======================================
+function rand(min, max) {
+    return Math.floor(Math.random() * (max - min + 1)) + min;
+}
 
-            <div class="lock-icon">🔒</div>
+function makeTerm() {
+    const type = rand(0, 2);
 
-            <h1>SYSTEM LOCKED</h1>
+    // Số đơn
+    if (type === 0) {
+        const n = rand(2, MAX_NUMBER * 3);
+        return { text: String(n), value: n };
+    }
 
-            <p class="subtitle">HỆ THỐNG ĐANG BỊ KHÓA</p>
+    // a × b
+    const a = rand(2, MAX_NUMBER);
+    const b = rand(2, 12);
 
-            <div class="divider"></div>
+    if (type === 1) {
+        return { text: `${a} × ${b}`, value: a * b };
+    }
 
-            <p class="instruction">MUỐN THOÁT? HÃY GIẢI ĐÚNG BÀI TOÁN</p>
+    // (a × b) ÷ c với c là ước của a×b -> luôn chia hết
+    const product = a * b;
+    const divisors = [];
+    for (let d = 2; d <= 12; d++) {
+        if (product % d === 0) divisors.push(d);
+    }
 
-            <div id="problem">Đang tạo bài toán...</div>
+    if (divisors.length === 0) {
+        return { text: `${a} × ${b}`, value: product };
+    }
 
-            <input
-                id="answer"
-                type="text"
-                inputmode="numeric"
-                placeholder="Nhập kết quả..."
-                autocomplete="off"
-            >
+    const c = divisors[rand(0, divisors.length - 1)];
+    return { text: `${a} × ${b} ÷ ${c}`, value: product / c };
+}
 
-            <button id="submitBtn">XÁC NHẬN</button>
+function generateProblem() {
+    let text = "";
+    let total = 0;
 
-            <div id="message"></div>
+    do {
+        const first = makeTerm();
+        text = first.text;
+        total = first.value;
 
-            <div class="attempt">
-                Số lần thử: <span id="attemptCount">0</span>
-            </div>
+        for (let i = 1; i < NUMBER_OF_TERMS; i++) {
+            const term = makeTerm();
+            if (Math.random() < 0.5) {
+                text += " + " + term.text;
+                total += term.value;
+            } else {
+                text += " − " + term.text;
+                total -= term.value;
+            }
+        }
+    } while (total < 0);   // chỉ nhận đáp án dương cho dễ nhập
 
-        </div>
+    correctAnswer = total;
+    problemEl.textContent = text + " = ?";
+    console.log("Đáp án:", correctAnswer);
+}
 
-        <div class="music-status">
-            🔊 MUSIC: <span>ON</span>
-        </div>
 
-    </div>
+// ======================================
+// NHẠC
+// ======================================
+function startMusic() {
+    music.volume = 1.0;
+    const p = music.play();
+    if (p !== undefined) {
+        p.catch(() => console.log("Trình duyệt chặn phát nhạc."));
+    }
+}
 
-    <div id="successScreen" class="hidden">
-        <div class="success-box">
-            <div class="success-icon">✅</div>
-            <h1>CHÍNH XÁC!</h1>
-            <p>Bạn đã giải đúng 😂</p>
-            <p class="success-small">Hệ thống đã được mở khóa.</p>
-            <button id="exitBtn">🚪 THOÁT</button>
-        </div>
-    </div>
 
-    <audio id="music" loop preload="auto">
-        <source src="troll.mp3" type="audio/mpeg">
-    </audio>
+// ======================================
+// FULLSCREEN
+// ======================================
+async function enterFullscreen() {
+    const el = document.documentElement;
+    try {
+        if (el.requestFullscreen) {
+            await el.requestFullscreen();
+        } else if (el.webkitRequestFullscreen) {
+            el.webkitRequestFullscreen();
+        }
+    } catch (e) {
+        console.log("Không vào được fullscreen:", e);
+    }
+}
 
-    <script src="script.js"></script>
+function isFullscreen() {
+    return !!(document.fullscreenElement || document.webkitFullscreenElement);
+}
 
-</body>
-</html>
+
+// ======================================
+// BẮT ĐẦU (bấm nút)
+// ======================================
+startBtn.addEventListener("click", async () => {
+    locked = true;
+
+    startScreen.classList.add("hidden");
+    gameScreen.classList.remove("hidden");
+
+    startMusic();
+    await enterFullscreen();
+
+    generateProblem();
+    answerInput.focus();
+
+    // Bẫy nút Back
+    history.pushState({ lock: true }, "", location.href);
+});
+
+
+// ======================================
+// CHẶN THOÁT
+// ======================================
+
+// Nút Back (PC + mobile)
+window.addEventListener("popstate", () => {
+    if (locked && !solved) {
+        history.pushState({ lock: true }, "", location.href);
+    }
+});
+
+// Đóng tab / tải lại -> trình duyệt hỏi xác nhận
+window.addEventListener("beforeunload", (e) => {
+    if (locked && !solved) {
+        e.preventDefault();
+        e.returnValue = "";
+    }
+});
+
+// Thoát fullscreen (Esc) -> hiện lại màn hình bấm để tiếp tục
+function onFullscreenChange() {
+    if (locked && !solved && !isFullscreen()) {
+        gameScreen.classList.add("hidden");
+        startScreen.classList.remove("hidden");
+    }
+}
+document.addEventListener("fullscreenchange", onFullscreenChange);
+document.addEventListener("webkitfullscreenchange", onFullscreenChange);
+
+// Quay lại tab -> phát nhạc tiếp
+document.addEventListener("visibilitychange", () => {
+    if (document.visibilityState === "visible" && locked && !solved) {
+        startMusic();
+    }
+});
+
+// Nhạc bị tạm dừng bởi hệ thống -> phát lại
+music.addEventListener("pause", () => {
+    if (locked && !solved) startMusic();
+});
+
+// Chặn phím tắt thường gặp (không chặn được Ctrl+W / Alt+F4)
+document.addEventListener("keydown", (e) => {
+    if (!locked || solved) return;
+
+    const key = e.key.toLowerCase();
+    const blocked =
+        e.key === "F5" ||
+        e.key === "F11" ||
+        e.key === "F12" ||
+        (e.ctrlKey && ["r", "u", "s", "p"].includes(key)) ||
+        (e.ctrlKey && e.shiftKey && ["i", "j", "c"].includes(key));
+
+    if (blocked) e.preventDefault();
+});
+
+// Chuột phải
+document.addEventListener("contextmenu", (e) => e.preventDefault());
+
+
+// ======================================
+// KIỂM TRA ĐÁP ÁN
+// ======================================
+function checkAnswer() {
+    const value = answerInput.value.trim();
+
+    if (value === "") {
+        messageEl.textContent = "⚠️ NHẬP ĐÁP ÁN ĐI!";
+        messageEl.style.color = "orange";
+        return;
+    }
+
+    attempts++;
+    attemptEl.textContent = attempts;
+
+    if (Number(value) === correctAnswer) {
+        solved = true;
+
+        messageEl.textContent = "✅ CHÍNH XÁC!";
+        messageEl.style.color = "#00ff55";
+        music.pause();
+
+        setTimeout(() => {
+            gameScreen.classList.add("hidden");
+            successScreen.classList.remove("hidden");
+        }, 500);
+
+    } else {
+        messageEl.textContent = "❌ SAI! GIẢI LẠI ĐI 😂";
+        messageEl.style.color = "red";
+
+        answerInput.value = "";
+        answerInput.focus();
+
+        document.body.animate(
+            [
+                { transform: "translateX(0)" },
+                { transform: "translateX(-12px)" },
+                { transform: "translateX(12px)" },
+                { transform: "translateX(-8px)" },
+                { transform: "translateX(8px)" },
+                { transform: "translateX(0)" }
+            ],
+            { duration: 350 }
+        );
+    }
+}
+
+submitBtn.addEventListener("click", checkAnswer);
+
+answerInput.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") checkAnswer();
+});
+
+
+// ======================================
+// THOÁT
+// ======================================
+exitBtn.addEventListener("click", async () => {
+    solved = true;
+
+    try {
+        if (isFullscreen()) {
+            if (document.exitFullscreen) await document.exitFullscreen();
+            else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
+        }
+    } catch (e) {
+        console.log(e);
+    }
+
+    window.location.href = "about:blank";
+});
