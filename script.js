@@ -1,401 +1,81 @@
-const NUMBER_OF_OPERATORS = 10;
-const MIN_RESULT = 100000;
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>SYSTEM LOCKED</title>
+    <link rel="stylesheet" href="style.css">
+</head>
 
-let correctAnswer = 0;
-let attempts = 0;
+<body>
 
-const problemElement =
-    document.getElementById("problem");
+    <!-- Màn hình bấm để bắt đầu (cần để trình duyệt cho phát nhạc + fullscreen) -->
+    <div id="startScreen">
+        <div class="start-box">
+            <div class="lock-icon">⚠️</div>
+            <h1>CẢNH BÁO</h1>
+            <p class="subtitle">PHÁT HIỆN LỖI HỆ THỐNG</p>
+            <button id="startBtn">BẤM ĐỂ TIẾP TỤC</button>
+        </div>
+    </div>
 
-const answerInput =
-    document.getElementById("answer");
+    <div id="gameScreen" class="hidden">
 
-const submitBtn =
-    document.getElementById("submitBtn");
+        <div class="top-warning">⚠ SYSTEM LOCKED ⚠</div>
 
-const messageElement =
-    document.getElementById("message");
+        <div class="container">
 
-const attemptElement =
-    document.getElementById("attemptCount");
+            <div class="lock-icon">🔒</div>
 
-const music =
-    document.getElementById("music");
+            <h1>SYSTEM LOCKED</h1>
 
-const gameScreen =
-    document.getElementById("gameScreen");
+            <p class="subtitle">HỆ THỐNG ĐANG BỊ KHÓA</p>
 
-const successScreen =
-    document.getElementById("successScreen");
+            <div class="divider"></div>
 
-const exitBtn =
-    document.getElementById("exitBtn");
+            <p class="instruction">MUỐN THOÁT? HÃY GIẢI ĐÚNG BÀI TOÁN</p>
 
+            <div id="problem">Đang tạo bài toán...</div>
 
-// ======================================
-// TẠO BÀI TOÁN
-// ======================================
+            <input
+                id="answer"
+                type="text"
+                inputmode="numeric"
+                placeholder="Nhập kết quả..."
+                autocomplete="off"
+            >
 
-function generateProblem() {
+            <button id="submitBtn">XÁC NHẬN</button>
 
-    const operatorsList = [
-        "+",
-        "-",
-        "×",
-        "÷"
-    ];
+            <div id="message"></div>
 
-    let expression = "";
-    let answer = 0;
+            <div class="attempt">
+                Số lần thử: <span id="attemptCount">0</span>
+            </div>
 
-    let valid = false;
+        </div>
 
-    while (!valid) {
+        <div class="music-status">
+            🔊 MUSIC: <span>ON</span>
+        </div>
 
-        let numbers = [];
-        let operators = [];
+    </div>
 
-        // 11 số
-        for (let i = 0; i <= NUMBER_OF_OPERATORS; i++) {
+    <div id="successScreen" class="hidden">
+        <div class="success-box">
+            <div class="success-icon">✅</div>
+            <h1>CHÍNH XÁC!</h1>
+            <p>Bạn đã giải đúng 😂</p>
+            <p class="success-small">Hệ thống đã được mở khóa.</p>
+            <button id="exitBtn">🚪 THOÁT</button>
+        </div>
+    </div>
 
-            numbers.push(
-                Math.floor(
-                    Math.random() * 50000
-                ) + 1
-            );
+    <audio id="music" loop preload="auto">
+        <source src="troll.mp3" type="audio/mpeg">
+    </audio>
 
-        }
+    <script src="script.js"></script>
 
-        // 10 dấu
-        for (
-            let i = 0;
-            i < NUMBER_OF_OPERATORS;
-            i++
-        ) {
-
-            operators.push(
-                operatorsList[
-                    Math.floor(
-                        Math.random() *
-                        operatorsList.length
-                    )
-                ]
-            );
-
-        }
-
-        expression =
-            String(numbers[0]);
-
-        for (
-            let i = 0;
-            i < NUMBER_OF_OPERATORS;
-            i++
-        ) {
-
-            expression +=
-                " " +
-                operators[i] +
-                " " +
-                numbers[i + 1];
-
-        }
-
-
-        // Thử tính bài toán
-        try {
-
-            const convertedExpression =
-                expression
-                    .replaceAll("×", "*")
-                    .replaceAll("÷", "/");
-
-            answer =
-                Function(
-                    '"use strict"; return (' +
-                    convertedExpression +
-                    ')'
-                )();
-
-        } catch (error) {
-
-            continue;
-
-        }
-
-
-        // Chỉ nhận kết quả nguyên > 100000
-        if (
-            Number.isFinite(answer) &&
-            Number.isInteger(answer) &&
-            answer > MIN_RESULT &&
-            answer < Number.MAX_SAFE_INTEGER
-        ) {
-
-            valid = true;
-
-        }
-
-    }
-
-
-    correctAnswer = answer;
-
-    problemElement.textContent =
-        expression + " = ?";
-
-
-    console.log(
-        "Đáp án:",
-        correctAnswer
-    );
-
-}
-
-
-// ======================================
-// NHẠC
-// ======================================
-
-function startMusic() {
-
-    music.volume = 1.0;
-
-    const promise =
-        music.play();
-
-    if (promise !== undefined) {
-
-        promise
-            .then(() => {
-
-                console.log(
-                    "Nhạc đang phát."
-                );
-
-            })
-            .catch(() => {
-
-                console.log(
-                    "Chrome đã chặn autoplay."
-                );
-
-            });
-
-    }
-
-}
-
-
-// ======================================
-// VÀO TRANG
-// ======================================
-
-generateProblem();
-
-startMusic();
-
-
-// Thử phát lại khi trang được hiển thị
-document.addEventListener(
-    "visibilitychange",
-    () => {
-
-        if (
-            document.visibilityState === "visible" &&
-            !successScreen.classList.contains("hidden")
-        ) {
-
-            return;
-
-        }
-
-        if (
-            document.visibilityState === "visible"
-        ) {
-
-            startMusic();
-
-        }
-
-    }
-);
-
-
-// ======================================
-// KIỂM TRA
-// ======================================
-
-function checkAnswer() {
-
-    const value =
-        answerInput.value.trim();
-
-
-    if (value === "") {
-
-        messageElement.textContent =
-            "⚠️ NHẬP ĐÁP ÁN ĐI!";
-
-        messageElement.style.color =
-            "orange";
-
-        return;
-
-    }
-
-
-    const userAnswer =
-        Number(value);
-
-
-    attempts++;
-
-    attemptElement.textContent =
-        attempts;
-
-
-    if (
-        userAnswer === correctAnswer
-    ) {
-
-        messageElement.textContent =
-            "✅ CHÍNH XÁC!";
-
-        messageElement.style.color =
-            "#00ff55";
-
-
-        music.pause();
-
-
-        setTimeout(() => {
-
-            gameScreen.classList.add(
-                "hidden"
-            );
-
-            successScreen.classList.remove(
-                "hidden"
-            );
-
-        }, 500);
-
-
-    } else {
-
-        messageElement.textContent =
-            "❌ SAI! GIẢI LẠI ĐI 😂";
-
-        messageElement.style.color =
-            "red";
-
-
-        answerInput.value = "";
-
-        answerInput.focus();
-
-
-        // Rung màn hình
-        document.body.animate(
-            [
-                {
-                    transform: "translateX(0)"
-                },
-                {
-                    transform: "translateX(-12px)"
-                },
-                {
-                    transform: "translateX(12px)"
-                },
-                {
-                    transform: "translateX(-8px)"
-                },
-                {
-                    transform: "translateX(8px)"
-                },
-                {
-                    transform: "translateX(0)"
-                }
-            ],
-            {
-                duration: 350
-            }
-        );
-
-    }
-
-}
-
-
-// ======================================
-// NÚT XÁC NHẬN
-// ======================================
-
-submitBtn.addEventListener(
-    "click",
-    checkAnswer
-);
-
-
-// ======================================
-// ENTER
-// ======================================
-
-answerInput.addEventListener(
-    "keydown",
-    function (event) {
-
-        if (event.key === "Enter") {
-
-            checkAnswer();
-
-        }
-
-    }
-);
-
-
-// ======================================
-// THOÁT
-// ======================================
-
-exitBtn.addEventListener(
-    "click",
-    async function () {
-
-        try {
-
-            if (
-                document.fullscreenElement
-            ) {
-
-                await document.exitFullscreen();
-
-            }
-
-        } catch (error) {
-
-            console.log(error);
-
-        }
-
-        window.location.href =
-            "about:blank";
-
-    }
-);
-
-
-// ======================================
-// CHUỘT PHẢI
-// ======================================
-
-document.addEventListener(
-    "contextmenu",
-    function (event) {
-
-        event.preventDefault();
-
-    }
-);
+</body>
+</html>
