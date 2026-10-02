@@ -1,0 +1,128 @@
+```html
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SYSTEM LOCKED</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+    <!-- Màn hình bắt đầu -->
+    <div id="startScreen">
+        <div class="warning">
+            ⚠️
+        </div>
+
+        <h1>SYSTEM LOCKED</h1>
+
+        <p class="start-text">
+            HỆ THỐNG ĐANG BỊ KHÓA
+        </p>
+
+        <p class="small-text">
+            Nhấn vào nút bên dưới để tiếp tục
+        </p>
+
+        <button id="startBtn">
+            🔴 BẮT ĐẦU
+        </button>
+    </div>
+
+
+    <!-- Màn hình chính -->
+    <main id="gameScreen" class="hidden">
+
+        <div class="top-warning">
+            ⚠ SYSTEM LOCKED ⚠
+        </div>
+
+        <div class="container">
+
+            <div class="lock-icon">
+                🔒
+            </div>
+
+            <h1>KHÔNG THỂ THOÁT</h1>
+
+            <p class="subtitle">
+                Muốn thoát? Hãy giải bài toán bên dưới.
+            </p>
+
+            <div class="divider"></div>
+
+            <p class="instruction">
+                Tính chính xác kết quả:
+            </p>
+
+            <div id="problem">
+                Đang tạo bài toán...
+            </div>
+
+            <input
+                id="answer"
+                type="number"
+                placeholder="Nhập kết quả..."
+                autocomplete="off"
+            >
+
+            <button id="submitBtn">
+                XÁC NHẬN
+            </button>
+
+            <div id="message"></div>
+
+            <div class="attempt">
+                Số lần thử: <span id="attemptCount">0</span>
+            </div>
+
+        </div>
+
+        <div class="music-status">
+            🔊 MUSIC: <span>ON</span>
+        </div>
+
+    </main>
+
+
+    <!-- Màn hình chiến thắng -->
+    <div id="successScreen" class="hidden">
+
+        <div class="success-box">
+
+            <div class="success-icon">
+                ✅
+            </div>
+
+            <h1>CHÍNH XÁC!</h1>
+
+            <p>
+                Chúc mừng 😂
+            </p>
+
+            <p class="success-small">
+                Bạn đã vượt qua bài toán.
+            </p>
+
+            <button id="exitBtn">
+                🚪 THOÁT
+            </button>
+
+        </div>
+
+    </div>
+
+
+    <!-- Nhạc -->
+    <audio id="music" loop preload="auto">
+        <source src="troll.mp3" type="audio/mpeg">
+    </audio>
+
+
+    <script src="script.js"></script>
+
+</body>
+</html>
+```
