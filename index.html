@@ -1,4 +1,3 @@
-```html
 <!DOCTYPE html>
 <html lang="vi">
 <head>
@@ -10,30 +9,7 @@
 
 <body>
 
-    <!-- Màn hình bắt đầu -->
-    <div id="startScreen">
-        <div class="warning">
-            ⚠️
-        </div>
-
-        <h1>SYSTEM LOCKED</h1>
-
-        <p class="start-text">
-            HỆ THỐNG ĐANG BỊ KHÓA
-        </p>
-
-        <p class="small-text">
-            Nhấn vào nút bên dưới để tiếp tục
-        </p>
-
-        <button id="startBtn">
-            🔴 BẮT ĐẦU
-        </button>
-    </div>
-
-
-    <!-- Màn hình chính -->
-    <main id="gameScreen" class="hidden">
+    <div id="gameScreen">
 
         <div class="top-warning">
             ⚠ SYSTEM LOCKED ⚠
@@ -41,20 +17,18 @@
 
         <div class="container">
 
-            <div class="lock-icon">
-                🔒
-            </div>
+            <div class="lock-icon">🔒</div>
 
-            <h1>KHÔNG THỂ THOÁT</h1>
+            <h1>SYSTEM LOCKED</h1>
 
             <p class="subtitle">
-                Muốn thoát? Hãy giải bài toán bên dưới.
+                HỆ THỐNG ĐANG BỊ KHÓA
             </p>
 
             <div class="divider"></div>
 
             <p class="instruction">
-                Tính chính xác kết quả:
+                MUỐN THOÁT? HÃY GIẢI ĐÚNG BÀI TOÁN
             </p>
 
             <div id="problem">
@@ -84,26 +58,21 @@
             🔊 MUSIC: <span>ON</span>
         </div>
 
-    </main>
+    </div>
 
 
-    <!-- Màn hình chiến thắng -->
     <div id="successScreen" class="hidden">
 
         <div class="success-box">
 
-            <div class="success-icon">
-                ✅
-            </div>
+            <div class="success-icon">✅</div>
 
             <h1>CHÍNH XÁC!</h1>
 
-            <p>
-                Chúc mừng 😂
-            </p>
+            <p>Bạn đã giải đúng 😂</p>
 
             <p class="success-small">
-                Bạn đã vượt qua bài toán.
+                Hệ thống đã được mở khóa.
             </p>
 
             <button id="exitBtn">
@@ -115,8 +84,7 @@
     </div>
 
 
-    <!-- Nhạc -->
-    <audio id="music" loop preload="auto">
+    <audio id="music" autoplay loop>
         <source src="troll.mp3" type="audio/mpeg">
     </audio>
 
@@ -125,4 +93,3 @@
 
 </body>
 </html>
-```
